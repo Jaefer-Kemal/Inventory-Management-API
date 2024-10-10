@@ -1,24 +1,34 @@
 from django.contrib import admin
 from django.contrib.auth.admin import UserAdmin
-from users.models import CustomUser  
+from users.models import CustomUser, AcessCode, Supplier
 
 @admin.register(CustomUser)  
 class CustomUserAdmin(UserAdmin):
-    list_display = (
-        "email",
-        "username",
-        "first_name",
-        "last_name",
-        "is_staff",
-        "is_active",
-        "role",
-        "is_verified",
-        "date_joined"
-    )
-    fieldsets = UserAdmin.fieldsets + ((None, {"fields": ("role",)}),)
+    # Define the fields to be used in displaying the CustomUser model.
+    list_display = ('email', 'username', 'first_name', 'last_name', 'role', 'is_active', 'is_staff')
+    list_filter = ('is_staff', 'is_active', 'role')
+    ordering = ('email',)
+    search_fields = ('email', 'username',)
 
-    add_fieldsets = UserAdmin.add_fieldsets + (
-        (None, {"fields": ("role",)}),  # Include the role field in the add form
+    # The fields that will be displayed in the form for creating and editing a user.
+    fieldsets = (
+        (None, {'fields': ('email', 'password')}),
+        ('Personal info', {'fields': ('username', 'first_name', 'last_name', 'role')}),
+        ('Permissions', {'fields': ('is_active', 'is_staff', 'is_verified')}),
     )
 
+    # Add these fields to the "Add User" form
+    add_fieldsets = (
+        (None, {
+            'classes': ('wide',),
+            'fields': ('email', 'username', 'password1', 'password2', 'role', 'is_staff', 'is_active', 'is_verified')}
+        ),
+    )
 
+@admin.register(AcessCode)
+class AcessCodeAdmin(admin.ModelAdmin):
+    list_display = ("code","role")
+
+@admin.register(Supplier)
+class SupplierAdmin(admin.ModelAdmin):
+    list_display = ("user","company_name","phone_number")

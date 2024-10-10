@@ -1,7 +1,7 @@
 from django.db import models
 from django.contrib.auth.models import BaseUserManager, AbstractBaseUser, PermissionsMixin
 from django.utils import timezone
-
+from uuid import uuid4
 
 
 
@@ -36,7 +36,6 @@ class CustomUserManager(BaseUserManager):
 
 class CustomUser(AbstractBaseUser, PermissionsMixin):
     ROLE_CHOICES = [
-    ('admin', 'Admin'),
     ('staff', 'Staff'),
     ('store_manager', 'Store Manager'),
     ('supplier', 'Supplier'),
@@ -52,6 +51,7 @@ class CustomUser(AbstractBaseUser, PermissionsMixin):
     is_active = models.BooleanField(default=True)
     is_verified = models.BooleanField(default=False)  # Indicates if the user has verified their role
     date_joined = models.DateTimeField(default=timezone.now)
+    
 
 
     objects = CustomUserManager()
@@ -61,3 +61,25 @@ class CustomUser(AbstractBaseUser, PermissionsMixin):
 
     def __str__(self):
         return f"{self.username} ({self.email})"
+    
+    
+class Supplier(models.Model):
+    user = models.OneToOneField(CustomUser, on_delete=models.CASCADE, related_name='supplier_profile')
+    company_name = models.CharField(max_length=255)
+    phone_number = models.CharField(max_length=15)
+    
+    
+    
+class Address(models.Model):
+    user = models.OneToOneField(CustomUser, on_delete=models.CASCADE, related_name='address')
+    street = models.CharField(max_length=255, blank=True,null=True)
+    city = models.CharField(max_length=100, blank=True, null=True)
+    state = models.CharField(max_length=100, blank=True, null=True)
+    postal_code = models.CharField(max_length=20, blank=True, null=True)
+    country = models.CharField(max_length=100, blank=True, null=True)
+    
+    
+class AcessCode(models.Model):
+    uuid = models.UUIDField(primary_key=True, default=uuid4, editable=False)
+    code = models.CharField(max_length=50)
+    role = models.CharField(max_length=20, choices=CustomUser.ROLE_CHOICES)
