@@ -3,7 +3,17 @@ from django.contrib.auth.models import BaseUserManager, AbstractBaseUser, Permis
 from django.utils import timezone
 from uuid import uuid4
 
+class UserRank(models.Model):
+    RANKING = [
+        ("bronze", "Bronze"),
+        ("silver", "Silver"),
+        ("gold", "Gold"),
+        ("platinum", "Platinum"),  
+    ]
+    rank = models.CharField(max_length=15, choices=RANKING, unique=True) 
 
+    def __str__(self):
+        return self.rank
 
 class CustomUserManager(BaseUserManager):
     def create_user(self, email, password=None, **extra_fields):
@@ -39,6 +49,7 @@ class CustomUser(AbstractBaseUser, PermissionsMixin):
     ('staff', 'Staff'),
     ('store_manager', 'Store Manager'),
     ('supplier', 'Supplier'),
+    ("customer","Customer")
 ]
 
 
@@ -49,37 +60,68 @@ class CustomUser(AbstractBaseUser, PermissionsMixin):
     role = models.CharField(max_length=20, choices=ROLE_CHOICES, default='staff')
     is_staff = models.BooleanField(default=False)
     is_active = models.BooleanField(default=True)
-    is_verified = models.BooleanField(default=False)  # Indicates if the user has verified their role
+    is_verified = models.BooleanField(default=False)  
     date_joined = models.DateTimeField(default=timezone.now)
     
-
-
     objects = CustomUserManager()
 
-    USERNAME_FIELD = 'email'  # Use email as the unique identifier
-    REQUIRED_FIELDS = ["username"]  # Required fields when using createsuperuser
+    USERNAME_FIELD = 'email'  
+    REQUIRED_FIELDS = ["username"]  
 
     def __str__(self):
         return f"{self.username} ({self.email})"
+    
+    class Meta:
+        verbose_name = "User"
     
     
 class Supplier(models.Model):
     user = models.OneToOneField(CustomUser, on_delete=models.CASCADE, related_name='supplier_profile')
     company_name = models.CharField(max_length=255)
     phone_number = models.CharField(max_length=15)
+    amount = models.DecimalField(max_digits=10, decimal_places=2,default=0)
+    rank = models.ManyToManyField(UserRank,related_name="suppliers_with_rank")
+    def __str__(self):
+        return f"{self.user.username}|{self.id}"
+    
+    def save(self, *args, **kwargs):
+        super().save(*args, **kwargs)
+    
+        if not self.rank.exists():
+            bronze_rank, created = UserRank.objects.get_or_create(rank="bronze")
+            self.rank.add(bronze_rank)
     
     
+    
+    
+class Customer(models.Model):
+    user = models.OneToOneField(CustomUser, on_delete=models.CASCADE, related_name='customer_profile')
+    phone_number = models.CharField(max_length=15)
+    amount = models.DecimalField(max_digits=10, decimal_places=2,default=0)
+    rank = models.ManyToManyField(UserRank,related_name="customers_with_rank")
+    def __str__(self):
+        return f"{self.user.username}|{self.id}"
+    
+    def save(self, *args, **kwargs):
+        super().save(*args, **kwargs)
+    
+        if not self.rank.exists():
+            bronze_rank, created = UserRank.objects.get_or_create(rank="bronze")
+            self.rank.add(bronze_rank)
     
 class Address(models.Model):
     user = models.OneToOneField(CustomUser, on_delete=models.CASCADE, related_name='address')
+    country = models.CharField(max_length=100, blank=True, null=True)
     street = models.CharField(max_length=255, blank=True,null=True)
     city = models.CharField(max_length=100, blank=True, null=True)
     state = models.CharField(max_length=100, blank=True, null=True)
     postal_code = models.CharField(max_length=20, blank=True, null=True)
-    country = models.CharField(max_length=100, blank=True, null=True)
     
     
 class AcessCode(models.Model):
-    uuid = models.UUIDField(primary_key=True, default=uuid4, editable=False)
+    id = models.UUIDField(primary_key=True, default=uuid4, editable=False)
     code = models.CharField(max_length=50)
     role = models.CharField(max_length=20, choices=CustomUser.ROLE_CHOICES)
+    
+    def __str__(self):
+        return f"{self.id} {self.role}"
