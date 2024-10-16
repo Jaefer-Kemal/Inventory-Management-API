@@ -10,7 +10,7 @@ class CategorySerializer(serializers.ModelSerializer):
 
 
 class ProductImageUploadSerializer(serializers.Serializer):
-    images = serializers.ListField(  
+    images = serializers.ListField(
         child=serializers.ImageField(),
         write_only=True
     )
@@ -20,8 +20,9 @@ class ProductImageUploadSerializer(serializers.Serializer):
             raise serializers.ValidationError("You can only upload a maximum of 3 images.")
         return value
 
-    def create(self, validated_data, product):
-        images = validated_data.get('images')  # Get the list of images
+    def create(self, validated_data):
+        images = validated_data.get('images')
+        product = validated_data.get('product')  # Fetch product from validated data
 
         # Check if the product already has 3 images
         existing_images_count = ProductImage.objects.filter(product=product).count()
@@ -30,13 +31,12 @@ class ProductImageUploadSerializer(serializers.Serializer):
 
         # Create multiple ProductImage instances for each image
         image_instances = [ProductImage(product=product, image=image) for image in images]
-        
+
         # Bulk create images
         ProductImage.objects.bulk_create(image_instances)
 
-        # Fetch the newly created image instances with IDs
-        return ProductImage.objects.filter(product=product)  # Return all images for this product
-    
+        # Return all images for this product
+        return ProductImage.objects.filter(product=product)  # This returns all images associated with the product
 # Serializer for Product Image with validation for maximum 3 images
 class ProductImageSerializer(serializers.ModelSerializer):
     class Meta:

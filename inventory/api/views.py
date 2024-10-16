@@ -19,23 +19,48 @@ from rest_framework.permissions import IsAdminUser, AllowAny
 class ProductListView(generics.ListCreateAPIView):
     queryset = Product.objects.all()
     serializer_class = ProductSerializer
-
+    def get_permissions(self):
+        if self.request.method == "POST":
+            self.permission_classes = [IsAdminUser]  # Only admin can create
+        else:
+            self.permission_classes = [AllowAny]  # Anyone can list
+        return super().get_permissions()
+    
 class ProductDetailView(generics.RetrieveUpdateAPIView):
     queryset = Product.objects.all()
     serializer_class = ProductSerializer
-
+    def get_permissions(self):
+        if self.request.method in ["PUT", "PATCH"]:
+            self.permission_classes = [IsAdminUser]  # Only admin can update
+        else:
+            self.permission_classes = [AllowAny]  # Anyone can retrieve
+        return super().get_permissions()   
+    
 # Image Views
 class ProductImageUploadView(generics.CreateAPIView):
     serializer_class = ProductImageUploadSerializer
-
+    
+    def get_permissions(self):
+        if self.request.method == "POST":
+            self.permission_classes = [IsAdminUser] 
+        else:
+            self.permission_classes = [AllowAny]  # Anyone can list
+        return super().get_permissions()
+       
+    def get(self, request, *args, **kwargs):
+        pk = kwargs.get("pk", None)
+        return Response({"message": f"Please upload images for the product with ID: {pk}."}, status=status.HTTP_200_OK)
+    
     def create(self, request, *args, **kwargs):
         pk = kwargs.get("pk")
         product = get_object_or_404(Product, pk=pk)  
+        
+        # Pass the product in validated data to serializer
         serializer = self.get_serializer(data=request.data)
         
         if serializer.is_valid():
             # Save images with the product instance
-            created_images = serializer.save(product=product)
+            created_images = serializer.create({**serializer.validated_data, 'product': product})
 
             # Use ProductImageSerializer to serialize the created image instances
             image_serializer = ProductImageSerializer(created_images, many=True)
@@ -43,7 +68,7 @@ class ProductImageUploadView(generics.CreateAPIView):
             return Response(image_serializer.data, status=status.HTTP_201_CREATED)
         else:
             return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
-        
+
     
 # Warehouse Stock Views
 class WarehouseStockListView(generics.ListCreateAPIView):

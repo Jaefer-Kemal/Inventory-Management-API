@@ -23,7 +23,7 @@ urlpatterns = [
     path("warehouse-stocks/<int:pk>/",WarehouseStockDetailView.as_view(),name="warehouse-stock-detail",),
     # Category URLs
     path("categories/", CategoryListView.as_view(), name="category-list"),
-    path("categories/<int:pk>", CategoryDetailView.as_view(), name="category-detail"),
+    path("categories/<int:pk>/", CategoryDetailView.as_view(), name="category-detail"),
     # Product transfer URL
     path("product-transfer/", ProductTransferView.as_view(), name="product-transfer"),
 ]
