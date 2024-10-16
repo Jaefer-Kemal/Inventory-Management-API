@@ -52,11 +52,22 @@ class ProductImageSerializer(serializers.ModelSerializer):
 
 # Serializer for Warehouse Stock
 class WarehouseStockSerializer(serializers.ModelSerializer):
+
     class Meta:
         model = WarehouseStock
         fields = ['id', 'product', 'warehouse', 'quantity']
+        
+    def to_representation(self, instance):
+        # Get the original representation
+        representation = super().to_representation(instance)
 
+        # Modify product and warehouse fields to show their names
+        representation['product'] = {"p_id":instance.product.id,
+            "p_name":instance.product.name,}  # Assuming Product has a 'name' field
+        representation['warehouse'] = {"w_id":instance.warehouse.id,
+            "w_name":instance.warehouse.name,}  # Assuming Warehouse has a 'name' field
 
+        return representation
 
 
 # Serializer for Product with automatic warehouse assignment to Warehouse 1

@@ -4,6 +4,8 @@ from warehouse.models import Warehouse
 from django.core.exceptions import ObjectDoesNotExist
 
 def transfer_product(source_warehouse_id, destination_warehouse_id, product_id, quantity):
+    if source_warehouse_id == destination_warehouse_id:
+        raise ValueError("Souce and Destination should not be equal")
     try:
         source_warehouse = Warehouse.objects.get(id=source_warehouse_id)
     except Warehouse.DoesNotExist:

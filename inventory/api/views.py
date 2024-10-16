@@ -114,10 +114,23 @@ class CategoryDetailView(generics.RetrieveUpdateAPIView):
         return super().get_permissions()
     
 
-class ProductTransferView(APIView):
-    def post(self, request):
-        serializer = ProductTransferSerializer(data=request.data)
-
+class ProductTransferView(generics.CreateAPIView):
+    serializer_class = ProductTransferSerializer
+    def get(self, request, *args, **kwargs):
+        message = {
+            "message": "This endpoint allows you to transfer products between warehouses.",
+            "instructions": {
+                "source_warehouse_id": "The ID of the warehouse where the product is currently stored.",
+                "destination_warehouse_id": "The ID of the warehouse where you want to transfer the product.",
+                "product_id": "The ID of the product you wish to transfer.",
+                "quantity": "The number of units of the product you wish to transfer."
+            },
+            "note": "Make sure that the source warehouse has sufficient stock of the product before initiating the transfer."
+        }
+        return Response(message, status=status.HTTP_200_OK)
+    def create(self, request, *args, **kwargs):
+        serializer = self.get_serializer(data=request.data)
+        
         if serializer.is_valid():
             source_warehouse_id = serializer.validated_data['source_warehouse_id']
             destination_warehouse_id = serializer.validated_data['destination_warehouse_id']
