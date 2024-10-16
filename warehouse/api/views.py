@@ -6,21 +6,23 @@ from warehouse.models import Warehouse
 from warehouse.api.serializers import WarehouseSerializer
 from inventory.models import WarehouseStock
 from inventory.api.serializers import ProductSerializer
-
+from rest_framework.permissions import IsAdminUser
 # Warehouse Views
 class WarehouseListView(generics.ListCreateAPIView):
     queryset = Warehouse.objects.all()
     serializer_class = WarehouseSerializer
+    permission_classes = [IsAdminUser]
 
 class WarehouseDetailView(generics.RetrieveUpdateDestroyAPIView):
     queryset = Warehouse.objects.all()
     serializer_class = WarehouseSerializer
-    
+    permission_classes = [IsAdminUser]
 
 # product in that warehouse
 class WarehouseProductsView(generics.ListAPIView):
     serializer_class = ProductSerializer
-
+    permission_classes = [IsAdminUser]
+    
     def get(self, request, pk, *args, **kwargs):
         warehouse = get_object_or_404(Warehouse, pk=pk)
         # Fetch all the products in this warehouse
