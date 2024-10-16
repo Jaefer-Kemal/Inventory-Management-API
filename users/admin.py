@@ -1,6 +1,6 @@
 from django.contrib import admin
 from django.contrib.auth.admin import UserAdmin
-from users.models import CustomUser, AcessCode, Supplier, Customer, UserRank
+from users.models import CustomUser, AcessCode, Supplier, Customer, UserRank, Address
 
 
 @admin.register(CustomUser)
@@ -68,3 +68,7 @@ class CustomerAdmin(admin.ModelAdmin):
 @admin.register(UserRank)
 class RankAdmin(admin.ModelAdmin):
     list_display = ("rank",)
+    
+@admin.register(Address)
+class AddressAdmin(admin.ModelAdmin):
+    list_display = ("country",)

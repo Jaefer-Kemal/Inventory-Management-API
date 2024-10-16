@@ -1,5 +1,5 @@
 from rest_framework import serializers
-from users.models import CustomUser, Supplier, Address, AcessCode
+from users.models import CustomUser, Supplier, Address, AcessCode, Customer
 
 
 # Serializer for registering employees (staff, store_manager)
@@ -139,11 +139,14 @@ class SupplierRegisterSerializer(serializers.ModelSerializer):
         phone_number = obj.supplier_profile.phone_number
         return phone_number
 
+
+
 # Serializer for user addresses
 class AddressSerializer(serializers.ModelSerializer):
+    country = serializers.CharField(max_length=100,required = True)
     class Meta:
         model = Address
-        fields = ["street", "city", "state", "postal_code", "country"]
+        fields = ["country","city","state", "street", "postal_code", ]
 
 
 # Serializer for user details with address
@@ -161,3 +164,80 @@ class UserDetailSerializer(serializers.ModelSerializer):
             "is_verified",
             "address",
         ]
+
+
+
+# Serializer for registering customers
+class CustomerRegisterSerializer(serializers.ModelSerializer):
+    access_code = serializers.CharField(write_only=True)
+    phone_number = serializers.CharField(max_length=15, write_only=True)
+    password2 = serializers.CharField(style={"input_type": "password"}, write_only=True)
+    customer_phone_number = serializers.SerializerMethodField()
+    role = serializers.ReadOnlyField()
+
+    class Meta:
+        model = CustomUser
+        fields = [
+            "email",
+            "username",
+            "first_name",
+            "last_name",
+            "password",
+            "password2",
+            "access_code",
+            "phone_number",
+            "role",
+            "customer_phone_number",
+        ]
+        extra_kwargs = {
+            "password": {"write_only": True}  # Set password to be write-only for security
+        }
+
+    def validate(self, data):
+        access_code_value = data.get("access_code")
+        try:
+            # Check if the access code exists and if it matches the customer role
+            access_code = AcessCode.objects.get(code=access_code_value)
+        except AcessCode.DoesNotExist:
+            raise serializers.ValidationError("Invalid access code.")
+
+        if access_code.role != "customer":
+            raise serializers.ValidationError(
+                "Access code does not match customer role."
+            )
+
+        # Set necessary flags for customers
+        data["is_verified"] = True
+        data["role"] = "customer"
+        return data
+
+    def create(self, validated_data):
+        # Remove access code and customer-specific fields from validated_data
+        access_code_value = validated_data.pop("access_code", None)
+        phone_number = validated_data.pop("phone_number", None)
+
+        password2 = validated_data.pop("password2", None)
+        password = validated_data.pop("password", None)
+
+        # Validate password
+        if password != password2:
+            raise serializers.ValidationError({"error": "Passwords do not match."})
+
+        # Create the user instance
+        user = CustomUser(**validated_data)
+
+        if password:
+            user.set_password(password)
+        user.save()
+
+        # Create the Customer model after the user is created
+        Customer.objects.create(
+            user=user, phone_number=phone_number
+        )
+
+        return user
+
+    def get_customer_phone_number(self, obj):
+        # Return the customer's phone number from the associated Customer profile
+        phone_number = obj.customer_profile.phone_number
+        return phone_number
