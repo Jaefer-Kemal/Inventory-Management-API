@@ -19,8 +19,8 @@ ACTION_CHOICES = [
 # Historical model for Purchase Orders
 class PurchaseOrderHistory(models.Model):
     created_by = models.CharField(max_length=255)
-    products = ArrayField(models.CharField(max_length=255))  # List of product names
-    quantities = ArrayField(models.PositiveIntegerField())  # List of quantities per product
+    products = models.JSONField()  # List of product names
+    quantities = models.JSONField() # List of quantities per product
     status = models.CharField(max_length=20, choices=STATUS_CHOICES)
     action = models.CharField(max_length=50, choices=ACTION_CHOICES)  # Action that triggered the log
     total_amount = models.DecimalField(max_digits=10, decimal_places=2)
@@ -32,8 +32,10 @@ class PurchaseOrderHistory(models.Model):
 # Historical model for Sales Orders
 class SalesOrderHistory(models.Model):
     customer_name = models.CharField(max_length=255)
-    products = ArrayField(models.CharField(max_length=255))
-    quantities = ArrayField(models.PositiveIntegerField())
+    products = models.JSONField()
+    quantities = models.JSONField()
+    # products = ArrayField(models.CharField(max_length=255))
+    # quantities = ArrayField(models.PositiveIntegerField())
     status = models.CharField(max_length=20, choices=STATUS_CHOICES)
     action = models.CharField(max_length=50, choices=ACTION_CHOICES)
     total_amount = models.DecimalField(max_digits=10, decimal_places=2)
@@ -45,8 +47,8 @@ class SalesOrderHistory(models.Model):
 # Historical model for Warehouse Stock Updates
 class WarehouseStockHistory(models.Model):
     warehouse_name = models.CharField(max_length=255)
-    products = ArrayField(models.CharField(max_length=255))
-    quantities = ArrayField(models.PositiveIntegerField())
+    products = models.JSONField()
+    quantities = models.JSONField()
     action = models.CharField(max_length=50, choices=ACTION_CHOICES)
     timestamp = models.DateTimeField(default=timezone.now)
 

@@ -8,20 +8,19 @@ class CategorySerializer(serializers.ModelSerializer):
         model = Category
         fields = ['id', 'name', 'description']
 
+
 class ProductImageUploadSerializer(serializers.Serializer):
-    product_id = serializers.PrimaryKeyRelatedField(queryset=Product.objects.all())  # Product to attach the images to
-    images = serializers.ListField(  # List of image files
+    images = serializers.ListField(  
         child=serializers.ImageField(),
         write_only=True
     )
 
     def validate_images(self, value):
-        if len(value) > 3:  # Ensure there are no more than 3 images
-            raise serializers.ValidationError("You can upload a maximum of 3 images.")
+        if len(value) > 3:
+            raise serializers.ValidationError("You can only upload a maximum of 3 images.")
         return value
 
-    def create(self, validated_data):
-        product = validated_data.get('product_id')  # Get the product object
+    def create(self, validated_data, product):
         images = validated_data.get('images')  # Get the list of images
 
         # Check if the product already has 3 images
@@ -37,7 +36,6 @@ class ProductImageUploadSerializer(serializers.Serializer):
 
         # Fetch the newly created image instances with IDs
         return ProductImage.objects.filter(product=product)  # Return all images for this product
-    
     
 # Serializer for Product Image with validation for maximum 3 images
 class ProductImageSerializer(serializers.ModelSerializer):
@@ -94,5 +92,13 @@ class ProductSerializer(serializers.ModelSerializer):
 
 
 
+class ProductTransferSerializer(serializers.Serializer):
+    source_warehouse_id = serializers.IntegerField()
+    destination_warehouse_id = serializers.IntegerField()
+    product_id = serializers.IntegerField()
+    quantity = serializers.IntegerField()
 
-
+    def validate_quantity(self, value):
+        if value <= 0:
+            raise serializers.ValidationError("Quantity must be greater than zero.")
+        return value

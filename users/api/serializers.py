@@ -6,7 +6,7 @@ from users.models import CustomUser, Supplier, Address, AcessCode
 class EmployeeRegisterSerializer(serializers.ModelSerializer):
     access_code = serializers.CharField(write_only=True)
     password2 = serializers.CharField(style={"input_type": "password"}, write_only=True)
-
+    role = serializers.ReadOnlyField()
     class Meta:
         model = CustomUser
         fields = [
@@ -66,9 +66,12 @@ class EmployeeRegisterSerializer(serializers.ModelSerializer):
 # Serializer for registering suppliers
 class SupplierRegisterSerializer(serializers.ModelSerializer):
     access_code = serializers.CharField(write_only=True)
-    company_name = serializers.CharField(max_length=255)
-    phone_number = serializers.CharField(max_length=15)
+    company_name = serializers.CharField(max_length=255, write_only=True)
+    phone_number = serializers.CharField(max_length=15, write_only=True)
     password2 = serializers.CharField(style={"input_type": "password"}, write_only=True)
+    supplier_company_name = serializers.SerializerMethodField()
+    supplier_phone_number = serializers.SerializerMethodField()
+    role = serializers.ReadOnlyField()
     class Meta:
         model = CustomUser
         fields = [
@@ -81,7 +84,9 @@ class SupplierRegisterSerializer(serializers.ModelSerializer):
             "access_code",
             "company_name",
             "phone_number",
-            
+            "role",
+            "supplier_company_name",
+            "supplier_phone_number"
         ]
         extra_kwargs = {
             "password": {"write_only": True}  # Set password to be write-only for security
@@ -103,16 +108,16 @@ class SupplierRegisterSerializer(serializers.ModelSerializer):
         data["is_verified"] = True
         data["role"] = "supplier"
         return data
-
+ 
     def create(self, validated_data):
         # Remove access code and supplier specific fields from validated_data
         access_code_value = validated_data.pop("access_code", None)
         company_name = validated_data.pop("company_name", None)
         phone_number = validated_data.pop("phone_number", None)
-
+        
+        password2 = validated_data.pop("password2", None)
         password = validated_data.pop("password", None)
         user = CustomUser.objects.create(**validated_data)
-        password2 = validated_data.pop("password2", None)
         if password != password2:
             raise serializers.ValidationError({"error": "Passwords do not match."})
         
@@ -127,6 +132,12 @@ class SupplierRegisterSerializer(serializers.ModelSerializer):
 
         return user
 
+    def get_supplier_company_name(self,obj):
+        company_name = obj.supplier_profile.company_name
+        return company_name
+    def get_supplier_phone_number(self,obj):
+        phone_number = obj.supplier_profile.phone_number
+        return phone_number
 
 # Serializer for user addresses
 class AddressSerializer(serializers.ModelSerializer):

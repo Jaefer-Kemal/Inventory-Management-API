@@ -2,31 +2,92 @@ from rest_framework import generics
 from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework import status
-from .serializers import ProductTransferSerializer
+from django.shortcuts import get_object_or_404
+
 from inventory.functions import transfer_product
 from django.core.exceptions import ObjectDoesNotExist
 from inventory.models import Product, WarehouseStock, Category
-from inventory.api.serializers import ProductSerializer, WarehouseStockSerializer, CategorySerializer
+from inventory.api.serializers import ( ProductSerializer,
+                                       WarehouseStockSerializer,
+                                       CategorySerializer,
+                                       ProductImageUploadSerializer,
+                                       ProductImageSerializer,
+                                       ProductTransferSerializer)
 
+from rest_framework.permissions import IsAdminUser, AllowAny
 # Product Views
 class ProductListView(generics.ListCreateAPIView):
     queryset = Product.objects.all()
     serializer_class = ProductSerializer
 
-class ProductDetailView(generics.RetrieveUpdateDestroyAPIView):
+class ProductDetailView(generics.RetrieveUpdateAPIView):
     queryset = Product.objects.all()
     serializer_class = ProductSerializer
 
+# Image Views
+class ProductImageUploadView(generics.CreateAPIView):
+    serializer_class = ProductImageUploadSerializer
+
+    def create(self, request, *args, **kwargs):
+        pk = kwargs.get("pk")
+        product = get_object_or_404(Product, pk=pk)  
+        serializer = self.get_serializer(data=request.data)
+        
+        if serializer.is_valid():
+            # Save images with the product instance
+            created_images = serializer.save(product=product)
+
+            # Use ProductImageSerializer to serialize the created image instances
+            image_serializer = ProductImageSerializer(created_images, many=True)
+
+            return Response(image_serializer.data, status=status.HTTP_201_CREATED)
+        else:
+            return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+        
+    
 # Warehouse Stock Views
 class WarehouseStockListView(generics.ListCreateAPIView):
     queryset = WarehouseStock.objects.all()
     serializer_class = WarehouseStockSerializer
-
-class WarehouseStockDetailView(generics.RetrieveUpdateDestroyAPIView):
+    def get_permissions(self):
+        if self.request.method == "POST":
+            self.permission_classes = [IsAdminUser]  # Only admin can create
+        else:
+            self.permission_classes = [AllowAny]  # Anyone can list
+        return super().get_permissions()
+    
+class WarehouseStockDetailView(generics.RetrieveUpdateAPIView):
     queryset = WarehouseStock.objects.all()
     serializer_class = WarehouseStockSerializer
+    def get_permissions(self):
+        if self.request.method in ["PUT", "PATCH"]:
+            self.permission_classes = [IsAdminUser]  # Only admin can update
+        else:
+            self.permission_classes = [AllowAny]  # Anyone can retrieve
+        return super().get_permissions()   
 
-class Category()
+class CategoryListView(generics.ListCreateAPIView):
+    queryset = Category.objects.all()
+    serializer_class = CategorySerializer
+    
+    def get_permissions(self):
+        if self.request.method == "POST":
+            self.permission_classes = [IsAdminUser]  # Only admin can create
+        else:
+            self.permission_classes = [AllowAny]  # Anyone can list
+        return super().get_permissions()
+    
+class CategoryDetailView(generics.RetrieveUpdateAPIView):
+    queryset = Category.objects.all()
+    serializer_class = CategorySerializer
+    
+    def get_permissions(self):
+        if self.request.method in ["PUT", "PATCH"]:
+            self.permission_classes = [IsAdminUser]  # Only admin can update
+        else:
+            self.permission_classes = [AllowAny]  # Anyone can retrieve
+        return super().get_permissions()
+    
 
 class ProductTransferView(APIView):
     def post(self, request):

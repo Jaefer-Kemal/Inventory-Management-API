@@ -10,7 +10,7 @@ STATUS_CHOICES = [
 ]
 
 class PurchaseOrder(models.Model):
-    created_by = models.ForeignKey(CustomUser, on_delete=models.CASCADE, related_name="purchase_orders")
+    created_by = models.ForeignKey(CustomUser, on_delete=models.SET_NULL, null=True, related_name="purchase_orders")
     status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='pending')
     is_active = models.BooleanField(default=True)
     created_at = models.DateTimeField(auto_now_add=True)

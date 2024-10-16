@@ -79,7 +79,6 @@ class Supplier(models.Model):
     user = models.OneToOneField(CustomUser, on_delete=models.CASCADE, related_name='supplier_profile')
     company_name = models.CharField(max_length=255)
     phone_number = models.CharField(max_length=15)
-    amount = models.DecimalField(max_digits=10, decimal_places=2,default=0)
     rank = models.ManyToManyField(UserRank,related_name="suppliers_with_rank")
     def __str__(self):
         return f"{self.user.username}|{self.id}"
@@ -97,7 +96,6 @@ class Supplier(models.Model):
 class Customer(models.Model):
     user = models.OneToOneField(CustomUser, on_delete=models.CASCADE, related_name='customer_profile')
     phone_number = models.CharField(max_length=15)
-    amount = models.DecimalField(max_digits=10, decimal_places=2,default=0)
     rank = models.ManyToManyField(UserRank,related_name="customers_with_rank")
     def __str__(self):
         return f"{self.user.username}|{self.id}"
