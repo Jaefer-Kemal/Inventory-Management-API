@@ -1,8 +1,9 @@
 from django.db.models.signals import post_save
 from django.dispatch import receiver
 from orders.models import PurchaseOrder, SalesOrder, PurchaseOrderItem, SalesOrderItem
-from auditlog.models import PurchaseOrderHistory, SalesOrderHistory
-
+from auditlog.models import PurchaseOrderHistory, SalesOrderHistory, WarehouseStockHistory
+from inventory.models import WarehouseStock
+from django.utils import timezone
 
 @receiver(post_save, sender=PurchaseOrder)
 def log_purchase_order_history(sender, instance, created, **kwargs):
@@ -64,3 +65,22 @@ def log_sales_order_history(sender, instance, created, **kwargs):
             action=action,  
             total_amount=instance.total_amount
         )
+
+@receiver(post_save, sender=WarehouseStock)
+def update_warehouse_stock_history(sender, instance, created, **kwargs):
+    """
+    Signal to create a warehouse stock history entry whenever WarehouseStock is updated.
+    """
+    # If this is a transfer, history will already be handled by the transfer function
+    if kwargs.get('raw', False):
+        return  # Avoid creating history during data loading
+
+    action = "created" if created else "updated"
+
+    WarehouseStockHistory.objects.create(
+        warehouse_name=instance.warehouse.name,
+        products={instance.product.id: instance.product.name},
+        quantities={instance.product.id: instance.quantity},
+        action=action,  # Use the default action here (created or updated)
+        timestamp=timezone.now(),
+    )

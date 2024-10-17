@@ -5,6 +5,7 @@ from rest_framework import serializers
 from inventory.models import Product
 from orders.models import PurchaseOrder, PurchaseOrderItem, SalesOrder, SalesOrderItem
 from inventory.models import WarehouseStock
+from warehouse.models import Warehouse
 
 class PurchaseOrderItemSerializer(serializers.ModelSerializer):
     product = serializers.PrimaryKeyRelatedField(queryset=Product.objects.all())  # Ensure the product exists
@@ -20,12 +21,13 @@ class PurchaseOrderItemSerializer(serializers.ModelSerializer):
 
 
 class PurchaseOrderSerializer(serializers.ModelSerializer):
-    items = PurchaseOrderItemSerializer(many=True, write_only=True)
+    items = PurchaseOrderItemSerializer(many=True)
     total_amount = serializers.DecimalField(
         max_digits=10, decimal_places=2, read_only=True
     )
     created_by = serializers.ReadOnlyField(source='created_by.username')
-    
+    is_active = serializers.ReadOnlyField()
+
     class Meta:
         model = PurchaseOrder
         fields = [
@@ -40,15 +42,17 @@ class PurchaseOrderSerializer(serializers.ModelSerializer):
         ]
 
     def create(self, validated_data):
-        # New orders should always start as 'pending' with 'is_active' set to True
+        # Pop the items data before creating the PurchaseOrder
+        items_data = validated_data.pop("items", None)
+
+        # Set initial status and is_active flags
         validated_data["status"] = "pending"
         validated_data["is_active"] = True
 
         # Create the PurchaseOrder instance
-        purchase_order = super().create(validated_data)
+        purchase_order = PurchaseOrder.objects.create(**validated_data)
 
         # Create related PurchaseOrderItem instances
-        items_data = validated_data.pop("items", None)
         if items_data:
             for item_data in items_data:
                 PurchaseOrderItem.objects.create(
@@ -58,46 +62,58 @@ class PurchaseOrderSerializer(serializers.ModelSerializer):
         return purchase_order
 
     def update(self, instance, validated_data):
+        # Check the status change
         new_status = validated_data.get("status", instance.status)
 
-        # Check if items exist when attempting to approve the order
-        if new_status == "approved" and instance.items.count() == 0:
-            raise serializers.ValidationError("Cannot approve an order with no items.")
-
-        # Prevent status jump: can't go from 'pending' to 'confirmed' or 'cancelled'
-        if instance.status == "pending" and new_status in ["confirmed", "cancelled"]:
+        # Prevent specific status changes as per business rules
+        if instance.status == "pending" and new_status in ["completed", "cancelled"]:
             raise serializers.ValidationError(
-                "Order must be approved before it can be confirmed or cancelled."
+                "Order must be approved before it can be completed or cancelled."
             )
-
-        # Prevent reverting an 'approved' order back to 'pending'
         if instance.status == "approved" and new_status == "pending":
             raise serializers.ValidationError(
                 "Cannot revert an approved order to pending."
             )
 
-        # Handle soft-delete if the status changes to 'cancelled'
-        if new_status == "cancelled" or new_status == "confirmed":
-            instance.is_active = False
 
-        # Handle items logic based on status
+        # Handle items update logic
         items_data = validated_data.pop("items", None)
-
-        if instance.status == "pending":
-            # If not yet approved, you can modify items fully
+        if instance.status == "pending" and items_data:
+            # If still pending, we can modify the items
+            instance.items.all().delete()  # Remove old items
+            for item_data in items_data:
+                PurchaseOrderItem.objects.create(
+                    purchase_order=instance, **item_data
+                )
+        elif instance.status in ["approved", "completed", "cancelled"]:
             if items_data:
-                instance.items.all().delete()  # Remove old items
-                for item_data in items_data:
-                    PurchaseOrderItem.objects.create(
-                        purchase_order=instance, **item_data
-                    )
-
-        elif instance.status in ["confirmed", "cancelled", "approved"]:
-            if item_data:
                 raise serializers.ValidationError(
-                    f"You can't modify items once it's {instance.status}"
+                    "You cannot modify items after the order is approved or completed."
                 )
 
+        # Handle soft-delete logic
+        if new_status in ["cancelled", "completed"]:
+            instance.is_active = False
+        
+        if new_status == "completed":
+            # Always refer to warehouse with ID=1
+            warehouse = Warehouse.objects.get(id=1)
+            
+            # Loop through the items and update stock in the warehouse
+            for item in instance.items.all():
+                product = item.product
+                quantity = item.quantity
+                
+                # Find or create the corresponding WarehouseStock record for warehouse with ID=1
+                warehouse_stock, created = WarehouseStock.objects.get_or_create(
+                    product=product,
+                    warehouse=warehouse,
+                    defaults={"quantity": 0}  # In case it's newly created, start with 0
+                )
+                
+                # Increase the quantity in the warehouse
+                warehouse_stock.quantity += quantity
+                warehouse_stock.save()    
         # Update the status and save the order
         instance.status = new_status
         instance.save()
@@ -122,27 +138,34 @@ class SalesOrderItemSerializer(serializers.ModelSerializer):
 
 
 class SalesOrderSerializer(serializers.ModelSerializer):
-    items = SalesOrderItemSerializer(many=True, write_only=True)
+    items = SalesOrderItemSerializer(many=True)
     total_amount = serializers.DecimalField(max_digits=10, decimal_places=2, read_only=True)
-    customer = serializers.ReadOnlyField(source='customer.username')
-    
+    customer = serializers.ReadOnlyField(source='customer.user.username')
+    is_active = serializers.ReadOnlyField()
     class Meta:
         model = SalesOrder
         fields = ['id', 'customer', 'status', 'is_active', 'created_at', 'updated_at', 'items', 'total_amount']
 
     def create(self, validated_data):
+        # Extract items data before creating the SalesOrder
+        items_data = validated_data.pop('items', [])
+        
+        # Automatically set the status and is_active flags
         validated_data['status'] = 'pending'
         validated_data['is_active'] = True
-        sales_order = super().create(validated_data)
-        self._create_sales_order_items(sales_order, validated_data.pop('items', []))
+
+        # Create the SalesOrder instance
+        sales_order = SalesOrder.objects.create(**validated_data)
+
+        # Create related SalesOrderItem instances
+        for item_data in items_data:
+            SalesOrderItem.objects.create(sales_order=sales_order, **item_data)
+
         return sales_order
+
 
     def update(self, instance, validated_data):
         new_status = validated_data.get('status', instance.status)
-
-        # Deactivate order on cancellation or confirmation
-        if new_status in ['cancelled', 'confirmed']:
-            instance.is_active = False
 
         # Prevent changing status from approved to pending
         if instance.status == 'approved' and new_status == 'pending':
@@ -151,24 +174,25 @@ class SalesOrderSerializer(serializers.ModelSerializer):
         items_data = validated_data.pop('items', None)
 
         if instance.status == 'pending':
-            # If not yet approved, you can modify items fully
-            if items_data:
+            if items_data is not None:  # Check if items_data is provided
                 instance.items.all().delete()  # Remove old items
                 self._create_sales_order_items(instance, items_data)
-        elif instance.status in ['confirmed', 'cancelled', 'approved']:
-            if items_data:
+        elif instance.status in ['completed', 'cancelled', 'approved']:
+            if items_data is not None:  # Check if items_data is provided
                 raise serializers.ValidationError(
                     f"You can't modify items once it's {instance.status}"
                 )
 
-        # Handle stock deduction on approval
+        # Handle stock deduction and return logic
         if new_status == 'approved':
-            self._validate_stock_availability(items_data)
+            self._validate_stock_availability(items_data or [])
             self._deduct_stock(instance)
 
-        # Handle stock return on cancellation
         if new_status == 'cancelled':
             self._return_stock(instance)
+
+        if new_status in ['cancelled', 'completed']:
+            instance.is_active = False
 
         # Update the status and save the order
         instance.status = new_status
@@ -193,6 +217,7 @@ class SalesOrderSerializer(serializers.ModelSerializer):
                 raise serializers.ValidationError(f"Insufficient stock for product {product}. Available: {total_available}, Required: {quantity_needed}")
 
     def _deduct_stock(self, order):
+    # Using atomic transaction to ensure data integrity
         with transaction.atomic():
             for item in order.items.all():
                 product_stock_entries = WarehouseStock.objects.filter(product=item.product)
@@ -200,23 +225,29 @@ class SalesOrderSerializer(serializers.ModelSerializer):
 
                 for stock in product_stock_entries:
                     if quantity_needed <= 0:
-                        break
+                        break  # Exit if no more quantity is needed
 
-                    if stock.quantity >= quantity_needed:
-                        stock.quantity -= quantity_needed
-                        stock.save()
-                        quantity_needed = 0  # All quantity fulfilled
-                    else:
-                        quantity_needed -= stock.quantity
-                        stock.quantity = 0  # All quantity in this stock used
-                        stock.save()
+                    if stock.quantity > 0:
+                        if stock.quantity >= quantity_needed:
+                            stock.quantity -= quantity_needed  # Fulfill the order
+                            stock.save()
+                            quantity_needed = 0  # Order fully fulfilled
+                        else:
+                            quantity_needed -= stock.quantity  # Use available stock
+                            stock.quantity = 0  # All available stock used
+                            stock.save()
 
+                # If still need quantity after checking all stocks
                 if quantity_needed > 0:
                     # Rollback previous deductions if stock is insufficient
                     for stock in product_stock_entries:
-                        stock.quantity += (item.quantity - quantity_needed)  # Revert the excess
+                        stock.quantity += (item.quantity - quantity_needed)  # Restore the excess
                         stock.save()
-                    raise serializers.ValidationError("Not enough stock to approve the order.")
+
+                    # Raise an error indicating insufficient stock
+                    raise serializers.ValidationError(
+                        f"Not enough stock to approve the order for product {item.product}."
+                    )
 
     def _return_stock(self, order):
         for item in order.items.all():

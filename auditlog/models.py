@@ -49,7 +49,7 @@ class WarehouseStockHistory(models.Model):
     warehouse_name = models.CharField(max_length=255)
     products = models.JSONField()
     quantities = models.JSONField()
-    action = models.CharField(max_length=50, choices=ACTION_CHOICES)
+    action = models.CharField(max_length=50)
     timestamp = models.DateTimeField(default=timezone.now)
 
     def __str__(self):

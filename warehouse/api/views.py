@@ -4,7 +4,7 @@ from rest_framework import status
 from django.shortcuts import get_object_or_404
 from warehouse.models import Warehouse
 from warehouse.api.serializers import WarehouseSerializer
-from inventory.models import WarehouseStock
+from inventory.models import WarehouseStock, Product
 from inventory.api.serializers import ProductSerializer
 from rest_framework.permissions import IsAdminUser
 # Warehouse Views
@@ -22,6 +22,7 @@ class WarehouseDetailView(generics.RetrieveUpdateDestroyAPIView):
 class WarehouseProductsView(generics.ListAPIView):
     serializer_class = ProductSerializer
     permission_classes = [IsAdminUser]
+    queryset = Product.objects.all()
     
     def get(self, request, pk, *args, **kwargs):
         warehouse = get_object_or_404(Warehouse, pk=pk)

@@ -2,7 +2,8 @@ from django.db import transaction
 from inventory.models import WarehouseStock, Product
 from warehouse.models import Warehouse
 from django.core.exceptions import ObjectDoesNotExist
-
+from auditlog.models import WarehouseStockHistory
+from django.utils import timezone
 def transfer_product(source_warehouse_id, destination_warehouse_id, product_id, quantity):
     if source_warehouse_id == destination_warehouse_id:
         raise ValueError("Souce and Destination should not be equal")
@@ -30,7 +31,13 @@ def transfer_product(source_warehouse_id, destination_warehouse_id, product_id, 
         # Deduct stock from the source warehouse
         source_stock.quantity -= quantity
         source_stock.save()
-
+        WarehouseStockHistory.objects.create(
+            warehouse_name=source_warehouse.name,
+            products={product.id: product.name},
+            quantities={product.id: quantity},
+            action='transfer-out',  # Specify the transfer action
+            timestamp=timezone.now(),
+        )
         # Add stock to the destination warehouse
         destination_stock, created = WarehouseStock.objects.get_or_create(
             warehouse=destination_warehouse, 
@@ -39,5 +46,12 @@ def transfer_product(source_warehouse_id, destination_warehouse_id, product_id, 
         )
         destination_stock.quantity += quantity
         destination_stock.save()
-
+        
+        WarehouseStockHistory.objects.create(
+                warehouse_name=destination_warehouse.name,
+                products={product.id: product.name},
+                quantities={product.id: quantity},
+                action='transfer-in',  # Specify the transfer action
+                timestamp=timezone.now(),
+            )
     return {"message": "Product transferred successfully."}
