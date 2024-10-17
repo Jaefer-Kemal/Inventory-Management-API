@@ -25,7 +25,7 @@ SECRET_KEY = "django-insecure-(9hw%5bztbks6jfuvzn%+3)!ju13y8)q+%gt87puns1ppo%2j@
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = []
+ALLOWED_HOSTS = ["https://jaefer-ims-93716cb495ea.herokuapp.com/","127.0.0.1"]
 
 
 # Application definition
@@ -44,7 +44,8 @@ INSTALLED_APPS = [
     "warehouse.apps.WarehouseConfig",
     "orders.apps.OrdersConfig",
     "auditlog.apps.AuditlogConfig",
-    "django_filters"
+    "django_filters",
+    "django_extensions"
     
 ]
 

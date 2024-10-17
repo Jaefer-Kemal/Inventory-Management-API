@@ -1,0 +1,1 @@
+web: gunicorn ims_config.wsgi --log-file - 
