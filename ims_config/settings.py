@@ -83,7 +83,7 @@ TEMPLATES = [
 
 WSGI_APPLICATION = "ims_config.wsgi.application"
 
-
+STATICFILES_STORAGE =  'django.contrib.staticfiles.storage.StaticFilesStorage' 
 # Database
 # https://docs.djangoproject.com/en/5.1/ref/settings/#databases
 
