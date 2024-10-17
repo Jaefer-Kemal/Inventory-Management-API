@@ -29,6 +29,7 @@ class PurchaseOrderHistoryDetail(generics.RetrieveAPIView):
     permission_classes = [permissions.IsAuthenticated, IsStoreAdminOrStaff]
 
 class SalesOrderHistoryList(generics.ListAPIView):
+    queryset = SalesOrderHistory.objects.all()
     serializer_class = SalesOrderHistorySerializer
     permission_classes = [permissions.IsAuthenticated, IsCustomerOrAdmin]
     filter_backends = [DjangoFilterBackend]
