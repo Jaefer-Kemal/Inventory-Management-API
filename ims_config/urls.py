@@ -22,12 +22,13 @@ from django.conf.urls.static import static
 
 urlpatterns = [
     path("api-auth/", include("rest_framework.urls")),
-    path('admin/', admin.site.urls),  # Admin site URL
+    path('admin/', admin.site.urls,name="admin"),  # Admin site URL
     path('api/auditlog/', include('auditlog.api.urls')),  # Include auditlog app URLs
     path('api/inventory/', include('inventory.api.urls')),  # Include inventory app URLs
     path('api/orders/', include('orders.api.urls')),  # Include orders app URLs
     path('api/account/', include('users.api.urls')),  # Include users app URLs
     path('api/warehouse/', include('warehouse.api.urls')),  # Include warehouse app URLs
+    path('', include('home.urls'))
 ]
 
 urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
