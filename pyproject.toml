@@ -20,6 +20,7 @@ gunicorn = "^23.0.0"
 whitenoise = "^6.7.0"
 python-decouple = "^3.8"
 django-heroku = "^0.3.1"
+rest-framework-simplejwt = "^0.0.2"
 
 
 [build-system]
