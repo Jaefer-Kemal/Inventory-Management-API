@@ -26,6 +26,18 @@ class PurchaseOrderViewSet(viewsets.ModelViewSet):
         instance = self.get_object()  # Get the existing purchase order
         serializer = self.get_serializer(instance, data=request.data, partial=True)
         serializer.is_valid(raise_exception=True)
+        
+        # Check if the user is attempting to update the status field
+        if 'status' in request.data and request.data['status'] != instance.status:
+            if not request.user.is_admin:  # Only allow admins to change the status
+                return Response(
+                    {"detail": "Only admins can update the status."},
+                    status=status.HTTP_403_FORBIDDEN
+                )
+
+        # Allow other updates for staff/store managers
+        return request.user.role in ["store_manager", "admin", "staff"]
+    
         self.perform_update(serializer)
 
         return Response(serializer.data)
@@ -102,6 +114,7 @@ class SalesOrderViewSet(viewsets.ModelViewSet):
         instance = self.get_object()  # Get the existing sales order
         serializer = self.get_serializer(instance, data=request.data, partial=True)
         serializer.is_valid(raise_exception=True)
+        
         self.perform_update(serializer)
 
         return Response(serializer.data)
