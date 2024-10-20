@@ -35,7 +35,7 @@ class EmployeeRegisterSerializer(serializers.ModelSerializer):
             raise serializers.ValidationError(
                 "Access code does not match employee roles."
             )
-
+        access_code.delete()
         # If access code role is 'staff', set necessary flags
         if access_code.role == "staff":
             data["is_staff"] = True
@@ -103,7 +103,7 @@ class SupplierRegisterSerializer(serializers.ModelSerializer):
             raise serializers.ValidationError(
                 "Access code does not match supplier role."
             )
-
+        access_code.delete()
         # Set necessary flags for suppliers
         data["is_verified"] = True
         data["role"] = "supplier"
@@ -230,6 +230,7 @@ class CustomerRegisterSerializer(serializers.ModelSerializer):
                 "Access code does not match customer role."
             )
 
+        access_code.delete()
         # Set necessary flags for customers
         data["is_verified"] = True
         data["role"] = "customer"
