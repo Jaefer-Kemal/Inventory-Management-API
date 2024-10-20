@@ -93,7 +93,7 @@ class PurchaseOrderSerializer(serializers.ModelSerializer):
                     "You cannot modify items after the order is approved or completed."
                 )
                 
-        if (not (items_data==[])) and (new_status=="approved"):
+        if (items_data==[]) and (new_status=="approved"):
             raise serializers.ValidationError("You cannot approve empty items")
 
         # Handle soft-delete logic
