@@ -199,6 +199,8 @@ class SalesOrderSerializer(serializers.ModelSerializer):
         if new_status in ['cancelled', 'completed']:
             instance.is_active = False
 
+        if (items_data==[]) and (new_status=="approved"):
+            raise serializers.ValidationError("You cannot approve empty items")
         # Update the status and save the order
         instance.status = new_status
         instance.save()
