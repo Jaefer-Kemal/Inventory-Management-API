@@ -43,10 +43,10 @@ class ProductImageUploadSerializer(serializers.Serializer):
         return ProductImage.objects.filter(product=product)
 
 class ProductImageSerializer(serializers.ModelSerializer):
-    image_url = serializers.SerializerMethodField()
+    
     class Meta:
         model = ProductImage
-        fields = ['id', 'product', 'image_url']
+        fields = ['id', 'product', 'image']
 
     def validate(self, data):
         product = data['product']
