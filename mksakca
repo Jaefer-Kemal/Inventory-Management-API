@@ -1,0 +1,166 @@
+Author: Jaefer-Kemal <jaeferkemal@gmail.com>
+Date:   Sun Oct 20 12:59:39 2024 +0300
+
+    Modified the requirements.txt
+
+[33mcommit fd2a7a1617b7bacc7352a8721f2075f72f801afa[m
+Author: Jaefer-Kemal <jaeferkemal@gmail.com>
+Date:   Sun Oct 20 12:55:30 2024 +0300
+
+    Modified the database, added cloudinary, used swagger documentation, added access serializer along with function that generates random unique code, added statisfiles, Fixed some urls:
+
+[33mcommit af19a0492d6b7cdfb077d8754e591ba90ac606c1[m[33m ([m[1;31morigin/main[m[33m)[m
+Author: Jaefer-Kemal <jaeferkemal@gmail.com>
+Date:   Sat Oct 19 09:48:19 2024 +0300
+
+    Updated README and ordersview
+
+[33mcommit 3c3de790a181be8ed883e2d2af6cfb5feb3f3a2f[m
+Author: Jaefer-Kemal <jaeferkemal@gmail.com>
+Date:   Thu Oct 17 16:34:09 2024 +0300
+
+    test
+
+[33mcommit 6e466af7426d2a7fcda5aad82172621f685c6ccf[m
+Author: Jaefer-Kemal <jaeferkemal@gmail.com>
+Date:   Thu Oct 17 16:31:52 2024 +0300
+
+    test6
+
+[33mcommit c9ca1e9022ce018254f80f8d1f9c1e5674286ed8[m
+Author: Jaefer-Kemal <jaeferkemal@gmail.com>
+Date:   Thu Oct 17 16:26:08 2024 +0300
+
+    test5
+
+[33mcommit 161ce75883d04720fec380d5a169787898498817[m
+Author: Jaefer-Kemal <jaeferkemal@gmail.com>
+Date:   Thu Oct 17 16:10:42 2024 +0300
+
+    test4
+
+[33mcommit 7d44415408388702d0b788780f0869df201ae7b3[m
+Author: Jaefer-Kemal <jaeferkemal@gmail.com>
+Date:   Thu Oct 17 16:06:22 2024 +0300
+
+    test3
+
+[33mcommit d717013cdb7ec11bda4d7ed75674acba554f74ca[m
+Author: Jaefer-Kemal <jaeferkemal@gmail.com>
+Date:   Thu Oct 17 15:56:24 2024 +0300
+
+    Modified allowed_host =[*]
+
+[33mcommit 0092cac26ea32f8a4ad5bd82d4e99a9bba1ab9f3[m
+Author: Jaefer-Kemal <jaeferkemal@gmail.com>
+Date:   Thu Oct 17 15:30:11 2024 +0300
+
+    test1
+
+[33mcommit affc6a5b96d888f9cae0c81703da32b92d3975ee[m
+Author: Jaefer-Kemal <jaeferkemal@gmail.com>
+Date:   Thu Oct 17 15:25:47 2024 +0300
+
+    Modified the settings and requirenment
+
+[33mcommit 23fd965650cd0509e43899c338f11acb68e3d777[m
+Author: Jaefer-Kemal <jaeferkemal@gmail.com>
+Date:   Thu Oct 17 15:12:06 2024 +0300
+
+    Modified debuf = false
+
+[33mcommit 437b5ca9627a30f00d9b67ce2ad39c2c8acdd294[m
+Author: Jaefer-Kemal <jaeferkemal@gmail.com>
+Date:   Thu Oct 17 15:02:17 2024 +0300
+
+    Added whitenoise and static root
+
+[33mcommit 38491f92bd57b28326d462a6e10afe76742eb986[m
+Author: Jaefer-Kemal <jaeferkemal@gmail.com>
+Date:   Thu Oct 17 14:53:07 2024 +0300
+
+    Added erd and requirements file
+
+[33mcommit efeef60b5dfc2f91c01e7deeec859c379c608a15[m
+Author: Jaefer-Kemal <jaeferkemal@gmail.com>
+Date:   Thu Oct 17 12:43:44 2024 +0300
+
+    Added home app to display  an  OVERVIEW of available endpoints
+
+[33mcommit 664f8845e154a3b82e3c3e09910b927002ed75e0[m
+Author: Jaefer-Kemal <jaeferkemal@gmail.com>
+Date:   Thu Oct 17 12:07:20 2024 +0300
+
+    Modified the auditlog gave it serializer,views and url
+
+[33mcommit 18462e888ef314c86e104fe5edcd20dc26f359b7[m
+Author: Jaefer-Kemal <jaeferkemal@gmail.com>
+Date:   Thu Oct 17 11:14:01 2024 +0300
+
+    Modified the orders app and auditlog signals.py
+
+[33mcommit 7696f557da408a89b71a91e78ec0ee0456717b2c[m
+Author: Jaefer-Kemal <jaeferkemal@gmail.com>
+Date:   Thu Oct 17 02:46:02 2024 +0300
+
+    Modified the inventory app
+
+[33mcommit ad2ce980ff2cc8ee5a4b3ad4d9d5c1da808efbcb[m
+Author: Jaefer-Kemal <jaeferkemal@gmail.com>
+Date:   Thu Oct 17 02:03:59 2024 +0300
+
+    Modified the warehouse app
+
+[33mcommit ab72baf99b00570322872ee9a1af7e320a1a8595[m
+Author: Jaefer-Kemal <jaeferkemal@gmail.com>
+Date:   Thu Oct 17 01:36:47 2024 +0300
+
+    Added Customer Register and fixed the Address views
+
+[33mcommit e130e4308827c282cf4a1d0d720d84200ff6ad7f[m
+Author: Jaefer-Kemal <jaeferkemal@gmail.com>
+Date:   Thu Oct 17 00:41:42 2024 +0300
+
+    Fixed the ProductUploadImageSerializer
+
+[33mcommit 92625301996ee2d19fbf9f9bd39485557b55e2d6[m
+Author: Jaefer-Kemal <jaeferkemal@gmail.com>
+Date:   Thu Oct 17 00:15:15 2024 +0300
+
+    Added Django-filter, finished with singals.py and serializer for both orders app and inventory app, Manually tested the users app
+
+[33mcommit bc34b72afa5cad4fcbd2515ee7c6bb76cae41780[m
+Author: Jaefer-Kemal <jaeferkemal@gmail.com>
+Date:   Wed Oct 16 02:58:15 2024 +0300
+
+    Added Api for inventory app
+
+[33mcommit e65ff965e9358fbd5f95ff4984a2800d15079aba[m
+Author: Jaefer-Kemal <jaeferkemal@gmail.com>
+Date:   Thu Oct 10 22:20:12 2024 +0300
+
+    Fixed the admin.py add feldset and also added address model that has foreign key with the user
+
+[33mcommit df524ce212b34410811762b50c7caf0998473a0c[m
+Author: Jaefer-Kemal <jaeferkemal@gmail.com>
+Date:   Thu Oct 10 14:28:28 2024 +0300
+
+    Added a Custom User model and also created a api folder
+
+[33mcommit 4a2e3be41a9f263590b68eaeed885cdd92fcd6c9[m
+Author: Jaefer-Kemal <jaeferkemal@gmail.com>
+Date:   Thu Oct 10 13:59:32 2024 +0300
+
+    Added the rest_framework to the indtalled_apps
+
+[33mcommit 88a54f3cab887f5fdaa0569791e470f5fd86329b[m
+Author: Jaefer-Kemal <jaeferkemal@gmail.com>
+Date:   Thu Oct 10 13:57:37 2024 +0300
+
+    Added the users app
+
+[33mcommit 3d6de5c93b36b04e0506742d95f3c7e6e713b8e5[m
+Author: Jaefer-Kemal <jaeferkemal@gmail.com>
+Date:   Thu Oct 10 13:48:45 2024 +0300
+
+    Initial Commit
