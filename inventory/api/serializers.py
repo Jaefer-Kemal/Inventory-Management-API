@@ -11,7 +11,7 @@ class CategorySerializer(serializers.ModelSerializer):
 
 class ProductImageUploadSerializer(serializers.Serializer):
     images = serializers.ListField(
-        child=serializers.ImageField(),
+        child=serializers.ImageField(),  # Still use ImageField to accept uploads
         write_only=True
     )
 
@@ -30,29 +30,34 @@ class ProductImageUploadSerializer(serializers.Serializer):
             raise serializers.ValidationError(f"Adding {len(images)} images exceeds the 3-image limit for this product.")
 
         # Create multiple ProductImage instances for each image
-        image_instances = [ProductImage(product=product, image=image) for image in images]
+        image_instances = []
+        for image in images:
+            # Create a new ProductImage instance with Cloudinary image
+            image_instance = ProductImage(product=product, image=image)
+            image_instances.append(image_instance)
 
         # Bulk create images
         ProductImage.objects.bulk_create(image_instances)
 
         # Return all images for this product
-        return ProductImage.objects.filter(product=product)  # This returns all images associated with the product
-# Serializer for Product Image with validation for maximum 3 images
+        return ProductImage.objects.filter(product=product)
+
 class ProductImageSerializer(serializers.ModelSerializer):
+    image_url = serializers.SerializerMethodField()
     class Meta:
         model = ProductImage
-        fields = ['id', 'product', 'image']
+        fields = ['id', 'product', 'image_url']
 
     def validate(self, data):
         product = data['product']
         if product.images.count() >= 3:
             raise serializers.ValidationError("A product can have a maximum of 3 images.")
         return data
+    
 
 
 # Serializer for Warehouse Stock
 class WarehouseStockSerializer(serializers.ModelSerializer):
-
     class Meta:
         model = WarehouseStock
         fields = ['id', 'product', 'warehouse', 'quantity']

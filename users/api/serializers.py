@@ -1,6 +1,6 @@
 from rest_framework import serializers
 from users.models import CustomUser, Supplier, Address, AcessCode, Customer
-
+from users.functions import generate_unique_code
 
 # Serializer for registering employees (staff, store_manager)
 class EmployeeRegisterSerializer(serializers.ModelSerializer):
@@ -150,8 +150,8 @@ class AddressSerializer(serializers.ModelSerializer):
 
 
 # Serializer for user details with address
-class UserDetailSerializer(serializers.ModelSerializer):
-    address = AddressSerializer(required=False)
+class UserListSerializer(serializers.ModelSerializer):
+    address = AddressSerializer(read_only=True)
 
     class Meta:
         model = CustomUser
@@ -162,10 +162,34 @@ class UserDetailSerializer(serializers.ModelSerializer):
             "last_name",
             "role",
             "is_verified",
+            "is_staff",
             "address",
         ]
-
-
+        
+class UserDetailSerializer(serializers.ModelSerializer):
+    address = AddressSerializer(read_only=True)
+    email = serializers.ReadOnlyField()
+    role = serializers.ReadOnlyField()
+    is_staff = serializers.ReadOnlyField()
+    is_verified = serializers.ReadOnlyField()
+    
+    class Meta:
+        model = CustomUser
+        fields = [
+            "email",
+            "username",
+            "first_name",
+            "last_name",
+            "role",
+            "is_verified",
+            "is_staff",
+            "address",
+        ]
+ 
+    def validate_username(self, value):
+        if CustomUser.objects.filter(username=value).exclude(id=self.instance.id).exists():
+            raise serializers.ValidationError("Username is already taken.")
+        return value
 
 # Serializer for registering customers
 class CustomerRegisterSerializer(serializers.ModelSerializer):
@@ -241,3 +265,15 @@ class CustomerRegisterSerializer(serializers.ModelSerializer):
         # Return the customer's phone number from the associated Customer profile
         phone_number = obj.customer_profile.phone_number
         return phone_number
+
+
+class AcessCodeSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = AcessCode
+        fields = ['id', 'code', 'role']
+        read_only_fields = ['id', 'code']  # 'code' is generated automatically
+
+    def create(self, validated_data):
+        # Generate the random code and add it to the validated data
+        validated_data['code'] = generate_unique_code()
+        return super().create(validated_data)

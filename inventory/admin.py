@@ -23,6 +23,18 @@ class ProductAdmin(admin.ModelAdmin):
 class ProductImageAdmin(admin.ModelAdmin):
     list_display = ('product', 'image')
     search_fields = ('product__name',)  # Searchable by product name
+    # Custom admin action to delete from both the database and Cloudinary
+    def delete_image_from_cloudinary(self, request, queryset):
+        for obj in queryset:
+            # Delete the image using the custom delete method
+            obj.delete()  # This will delete the image from Cloudinary and database
+
+        self.message_user(request, "Selected product images have been deleted from Cloudinary and database.")
+
+    delete_image_from_cloudinary.short_description = 'Delete selected product images from Cloudinary and database'
+
+    # Add custom delete action
+    actions = [delete_image_from_cloudinary]
 
 
 # Warehouse Stock Admin

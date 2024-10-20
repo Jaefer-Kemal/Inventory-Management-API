@@ -64,29 +64,29 @@ Before setting up the project, ensure you have the following installed on your s
 ### Local Setup
 
 1. Clone the repository:
-```ruby
+```bash
 git clone https://github.com/Jaefer-Kemal/Inventory-Management-API.git
 ```
 
 2. Install dependencies:
-```ruby
-pip install -r requirements.txt`
+```bash
+pip install -r requirements.txt
 ```   
 
 3. Configure your environment variables:
     - Create a `.env` file in the root directory with your secret keys, database configurations, and other settings.
 4. Run migrations:
-```ruby
+```bash
 python manage.py migrate
 ```
 
 5. Create a superuser for admin access:
-```ruby
+```bash
 python manage.py createsuperuser
 ```
 
 6. Start the server:
-```ruby
+```bash
 python manage.py runserver
 ```
 

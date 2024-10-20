@@ -9,7 +9,7 @@ from warehouse.models import Warehouse
 
 class PurchaseOrderItemSerializer(serializers.ModelSerializer):
     product = serializers.PrimaryKeyRelatedField(queryset=Product.objects.all())  # Ensure the product exists
-    
+
     class Meta:
         model = PurchaseOrderItem
         fields = ["product", "quantity"]
@@ -64,6 +64,8 @@ class PurchaseOrderSerializer(serializers.ModelSerializer):
     def update(self, instance, validated_data):
         # Check the status change
         new_status = validated_data.get("status", instance.status)
+        
+
 
         # Prevent specific status changes as per business rules
         if instance.status == "pending" and new_status in ["completed", "cancelled"]:
@@ -90,6 +92,9 @@ class PurchaseOrderSerializer(serializers.ModelSerializer):
                 raise serializers.ValidationError(
                     "You cannot modify items after the order is approved or completed."
                 )
+                
+        if (not (items_data==[])) and (new_status=="approved"):
+            raise serializers.ValidationError("You cannot approve empty items")
 
         # Handle soft-delete logic
         if new_status in ["cancelled", "completed"]:
@@ -98,7 +103,7 @@ class PurchaseOrderSerializer(serializers.ModelSerializer):
         if new_status == "completed":
             # Always refer to warehouse with ID=1
             warehouse = Warehouse.objects.get(id=1)
-            
+
             # Loop through the items and update stock in the warehouse
             for item in instance.items.all():
                 product = item.product

@@ -4,4 +4,5 @@ from inventory.models import Warehouse
 class WarehouseSerializer(serializers.ModelSerializer):
     class Meta:
         model = Warehouse
-        fields = ['id', 'name', 'address', 'country', 'city', 'state', 'postal_code', 'image', 'created_at', 'updated_at']
+        fields = ['id', 'name', 'address', 'country', 'city', 'state', 'postal_code', 'created_at', 'updated_at','image',]
+    

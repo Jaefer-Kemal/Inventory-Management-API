@@ -15,6 +15,7 @@ from inventory.api.serializers import ( ProductSerializer,
                                        ProductTransferSerializer)
 
 from rest_framework.permissions import IsAdminUser, AllowAny
+from orders.permissions import IsStoreAdminOrStaff
 # Product Views
 class ProductListView(generics.ListCreateAPIView):
     queryset = Product.objects.all()
@@ -39,12 +40,12 @@ class ProductDetailView(generics.RetrieveUpdateAPIView):
 # Image Views
 class ProductImageUploadView(generics.CreateAPIView):
     serializer_class = ProductImageUploadSerializer
-    
+  
     def get_permissions(self):
         if self.request.method == "POST":
             self.permission_classes = [IsAdminUser] 
         else:
-            self.permission_classes = [AllowAny]  # Anyone can list
+            self.permission_classes = [IsStoreAdminOrStaff]  # Anyone can list
         return super().get_permissions()
        
     def get(self, request, *args, **kwargs):
@@ -78,7 +79,7 @@ class WarehouseStockListView(generics.ListCreateAPIView):
         if self.request.method == "POST":
             self.permission_classes = [IsAdminUser]  # Only admin can create
         else:
-            self.permission_classes = [AllowAny]  # Anyone can list
+            self.permission_classes = [IsStoreAdminOrStaff]  # Anyone can list
         return super().get_permissions()
     
 class WarehouseStockDetailView(generics.RetrieveUpdateAPIView):
@@ -88,12 +89,13 @@ class WarehouseStockDetailView(generics.RetrieveUpdateAPIView):
         if self.request.method in ["PUT", "PATCH"]:
             self.permission_classes = [IsAdminUser]  # Only admin can update
         else:
-            self.permission_classes = [AllowAny]  # Anyone can retrieve
+            self.permission_classes = [IsStoreAdminOrStaff]  # Anyone can retrieve
         return super().get_permissions()   
 
 class CategoryListView(generics.ListCreateAPIView):
     queryset = Category.objects.all()
     serializer_class = CategorySerializer
+
     
     def get_permissions(self):
         if self.request.method == "POST":
@@ -116,6 +118,7 @@ class CategoryDetailView(generics.RetrieveUpdateAPIView):
 
 class ProductTransferView(generics.CreateAPIView):
     serializer_class = ProductTransferSerializer
+    permission_classes = [IsAdminUser]
     def get(self, request, *args, **kwargs):
         message = {
             "message": "This endpoint allows you to transfer products between warehouses.",

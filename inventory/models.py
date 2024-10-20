@@ -1,6 +1,8 @@
 from django.db import models
 from warehouse.models import Warehouse
 from users.models import Supplier
+from cloudinary.models import CloudinaryField
+from cloudinary.uploader import destroy
 
 class Category(models.Model):
     name = models.CharField(max_length=100, unique=True, verbose_name="Category Name")
@@ -32,7 +34,7 @@ class Product(models.Model):
 
 class ProductImage(models.Model):
     product = models.ForeignKey(Product, on_delete=models.CASCADE, related_name="images", verbose_name="Product")
-    image = models.ImageField(upload_to="product_images/", verbose_name="Image")
+    image = CloudinaryField('image', folder='product/', blank=True, null=True)
 
     class Meta:
         verbose_name = "Product Image"
@@ -40,12 +42,24 @@ class ProductImage(models.Model):
 
     def __str__(self):
         return f"Image for {self.product.name}"
+    
+    # Override the delete method to ensure Cloudinary deletion
+    def delete(self, *args, **kwargs):
+        # If the image exists, delete it from Cloudinary
+        if self.image:
+            # Get the public ID of the image stored in Cloudinary
+            public_id = self.image.public_id
+            if public_id:
+                destroy(public_id)  # Call Cloudinary API to delete the image
+                print(f"Deleted {public_id} from Cloudinary.")
 
+        # Now delete the record from the database
+        super().delete(*args, **kwargs)
 
 class WarehouseStock(models.Model):
     product = models.ForeignKey(Product, on_delete=models.CASCADE, related_name='stocks', verbose_name="Product")
     warehouse = models.ForeignKey(Warehouse, on_delete=models.CASCADE, related_name="stocks", verbose_name="Warehouse",default=1)
-    quantity = models.PositiveIntegerField(verbose_name="Quantity")
+    quantity = models.PositiveIntegerField(verbose_name="Quantity", default=0)
 
     class Meta:
         verbose_name = "Warehouse Stock"

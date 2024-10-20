@@ -4,6 +4,9 @@ from orders.models import PurchaseOrder, PurchaseOrderItem
 from inventory.models import WarehouseStock
 from warehouse.models import Warehouse  # Assuming the Warehouse model is in the warehouse app
 
+from django.core.mail import send_mail
+from inventory.models import WarehouseStock
+
 @receiver(post_save, sender=PurchaseOrder)
 def update_warehouse_stock(sender, instance, **kwargs):
     # Check if the status has changed to 'confirmed'
@@ -27,3 +30,6 @@ def update_warehouse_stock(sender, instance, **kwargs):
             stock.save()
 
         print(f"Stock updated for Purchase Order {instance.id} in warehouse {warehouse.id}")
+
+
+
