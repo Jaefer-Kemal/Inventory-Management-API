@@ -101,7 +101,7 @@ This API uses **JWT (JSON Web Token)** for securing endpoints. To access most en
 
 
 ```bash
-POST /api/account/token/ {   "username": "user",   "password": "password" }
+POST /api/account/token/ {   "email": "email",   "password": "password" }
 ```
 
 This will return:
